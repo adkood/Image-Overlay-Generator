@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const ffmpeg = require('fluent-ffmpeg');
-const sharp = require('sharp'); 
+const sharp = require('sharp');
 
 const app = express();
 const port = 3001;
@@ -43,12 +43,9 @@ app.post('/overlay', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'vid
     const videoUrl = req.files['video'][0].path;
     let { x, y, width, height } = req.body;
 
-    width = parseInt(width, 10);
-    height = parseInt(height, 10);
-
     const resizedImagePath = `uploads/resized_${Date.now()}.jpeg`;
     await sharp(imageUrl)
-      .resize(width, height)
+      .resize(parseInt(width, 10), parseInt(height, 10))
       .toFile(resizedImagePath);
 
     const outputVideoPath = `uploads/output_${Date.now()}.mp4`;
@@ -57,7 +54,7 @@ app.post('/overlay', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'vid
       .input(videoUrl)
       .input(resizedImagePath)
       .complexFilter([
-        `overlay=${x}:${y}`
+        `overlay=${x}:${y}`,
       ])
       .output(outputVideoPath)
       .on('error', (err) => {

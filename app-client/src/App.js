@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Draggable from 'react-draggable';
+import { Resizable } from 're-resizable';
 
 function App() {
   const [image, setImage] = useState(null);
   const [video, setVideo] = useState(null);
-  const [width, setWidth] = useState(150);
-  const [height, setHeight] = useState(150);
+  const [width, setWidth] = useState(100);
+  const [height, setHeight] = useState(100);
   const [imageUrl, setImageUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [overlayedVideoUrl, setOverlayedVideoUrl] = useState('');
   const [overlaying, setOverlaying] = useState(false);
 
-  const [x, setX] = useState(0);
-  const [y, setY] = useState(0);
+  const [x, setX] = useState(100);
+  const [y, setY] = useState(100);
 
   const handleImageChange = (e) => {
     const selectedImage = e.target.files[0];
@@ -66,8 +67,8 @@ function App() {
       formData.append('video', video);
       formData.append('x', x);
       formData.append('y', y);
-      formData.append('width', width);
-      formData.append('height', height);
+      formData.append('width', width || 100);
+      formData.append('height', height || 100);
 
       const overlayedResponse = await axios.post('http://localhost:3001/overlay', formData, {
         headers: {
@@ -134,26 +135,6 @@ function App() {
           />
         </label>
       </div>
-      <div style={{ margin: "10px" }}>
-        <label style={{ margin: "10px", display: 'block', color: '#333' }}>
-          IMAGE-WIDTH:
-          <input
-            style={{ margin: "10px", padding: '5px', borderRadius: '5px', border: '1px solid #ccc', backgroundColor: '#fff' }}
-            type="number"
-            value={width}
-            onChange={handleWidthChange}
-          />
-        </label>
-        <label style={{ margin: "10px", display: 'block', color: '#333' }}>
-          IMAGE-HEIGHT:
-          <input
-            style={{ margin: "10px", padding: '5px', borderRadius: '5px', border: '1px solid #ccc', backgroundColor: '#fff' }}
-            type="number"
-            value={height}
-            onChange={handleHeightChange}
-          />
-        </label>
-      </div>
       <button
         style={{
           fontSize: "1rem",
@@ -175,28 +156,39 @@ function App() {
             <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
               <video
                 id="videoPreview"
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 'auto' }}
                 controls
               >
                 <source src={`http://localhost:3001/${videoUrl}`} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               {image && (
-                <Draggable
-                  bounds="parent"
-                  position={{ x, y }}
-                  onDrag={handleDrag}
-                >
-                  <img
-                    src={URL.createObjectURL(image)}
-                    alt="Image Overlay"
-                    style={{
-                      position: 'absolute',
-                      width: `${width}px`,
-                      height: `${height}px`,
-                    }}
-                  />
+                <Draggable position={{ x, y }} onDrag={handleDrag}>
+                  <div>
+                    <Resizable
+                      size={{ width : `${width}px`, height: `${height}px`}}
+                      style={{
+                        border: "2px solid white",
+                      }}
+                      lockAspectRatio
+                      onResize={(e, direction, ref, delta, position) => {
+                        setWidth(ref.style.width);
+                        setHeight(ref.style.height);
+                      }}
+                    >
+                      <img
+                        src={URL.createObjectURL(image)}
+                        alt="Image Overlay"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </Resizable>
+                  </div>
                 </Draggable>
+
               )}
             </div>
           </div>
